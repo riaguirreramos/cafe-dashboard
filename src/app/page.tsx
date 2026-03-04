@@ -221,7 +221,7 @@ export default function CoffeeDashboard() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={dadosComparativos} margin={{ top: 20, bottom: 30 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="nome" axisLine={false} tickLine={false} />
+                      <XAxis dataKey="nome" axisLine={false} tickLine={false} height={60} tickMargin={15} tick={{ fontSize: 13 }} />
                       <YAxis axisLine={false} tickLine={false} domain={['dataMin - 100', 'dataMax + 100']} />
                       <Tooltip formatter={(value) => `R$ ${value}`} cursor={{fill: '#f1f5f9'}} />
                       <ReferenceLine y={fisicoVal} stroke="#10b981" strokeDasharray="3 3" />
@@ -244,7 +244,7 @@ export default function CoffeeDashboard() {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={dadosCambio} margin={{ top: 20, bottom: 30 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="dolar" axisLine={false} tickLine={false} />
+                      <XAxis dataKey="dolar" axisLine={false} tickLine={false} height={60} tickMargin={15} tick={{ fontSize: 13 }} />
                       <YAxis axisLine={false} tickLine={false} domain={['dataMin - 100', 'dataMax + 100']} />
                       <Tooltip formatter={(value) => `R$ ${value}`} />
                       <Legend />
