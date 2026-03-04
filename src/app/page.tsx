@@ -1,46 +1,48 @@
 "use client";
 
 import React, { useState } from 'react';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
-import { Coffee, DollarSign, TrendingDown, Package, Settings2, MapPin } from 'lucide-react';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
+import { Coffee, DollarSign, TrendingDown, Package, Settings2, MapPin, Scale } from 'lucide-react';
 
 export default function CoffeeDashboard() {
-  // Estados para guardar os valores digitados pelo usuário
+  // Estados para os inputs
   const [cotacaoNY, setCotacaoNY] = useState<number>(286.95);
   const [dolar, setDolar] = useState<number>(5.21);
-  const [precoFisico, setPrecoFisico] = useState<number>(1879.00); // Preço Guaxupé/Cooxupé
+  const [precoFisico, setPrecoFisico] = useState<number>(1879.00);
+  const [diferencial, setDiferencial] = useState<number>(20); // Novo campo de Diferencial
   
   const librasPorSaca = 132.277;
 
-  // Função de cálculo
+  // Cálculos base
   const calcularValorSacaBRL = (nyCents: number, txDolar: number) => {
     return ((nyCents / 100) * librasPorSaca * txDolar).toFixed(2);
   };
 
   const sacaBaseBRL = parseFloat(calcularValorSacaBRL(cotacaoNY, dolar));
-  const sacaDesagio20BRL = parseFloat(calcularValorSacaBRL(cotacaoNY - 20, dolar));
+  const sacaComDesagioBRL = parseFloat(calcularValorSacaBRL(cotacaoNY - diferencial, dolar));
 
-  // Diferença entre o Físico e NY Base
+  // Comparativos solicitados
   const diferencaFisicoBase = precoFisico - sacaBaseBRL;
+  const diferencaFisicoDesagio = precoFisico - sacaComDesagioBRL;
 
-  // Dados para o Gráfico Comparativo (Agora incluindo o Mercado Físico)
+  // Dados para o Gráfico de Barras
   const dadosComparativos = [
-    { nome: 'Bolsa NY (Base)', valorR$: sacaBaseBRL, tipo: 'bolsa' },
-    { nome: 'Bolsa NY (-20¢)', valorR$: sacaDesagio20BRL, tipo: 'bolsa' },
-    { nome: 'Físico (Guaxupé)', valorR$: precoFisico, tipo: 'fisico' },
+    { nome: 'NY Base (Tela)', valorR$: sacaBaseBRL, tipo: 'bolsa' },
+    { nome: `NY (-${diferencial}¢)`, valorR$: sacaComDesagioBRL, tipo: 'desagio' },
+    { nome: 'Mercado Físico', valorR$: precoFisico, tipo: 'fisico' },
   ];
 
-  // Dados para o Gráfico de Sensibilidade Cambial
+  // Dados para Sensibilidade Cambial
   const dadosCambio = [
     { dolarLabel: 'R$ 4.80', tx: 4.80 },
     { dolarLabel: 'R$ 5.00', tx: 5.00 },
-    { dolarLabel: `R$ ${dolar} (Atual)`, tx: dolar },
+    { dolarLabel: `R$ ${dolar}`, tx: dolar },
     { dolarLabel: 'R$ 5.40', tx: 5.40 },
     { dolarLabel: 'R$ 5.60', tx: 5.60 },
   ].sort((a, b) => a.tx - b.tx).map(item => ({
     dolar: item.dolarLabel,
     sacaBase: parseFloat(calcularValorSacaBRL(cotacaoNY, item.tx)),
-    sacaDesagio20: parseFloat(calcularValorSacaBRL(cotacaoNY - 20, item.tx))
+    sacaComDesagio: parseFloat(calcularValorSacaBRL(cotacaoNY - diferencial, item.tx))
   }));
 
   return (
@@ -54,110 +56,109 @@ export default function CoffeeDashboard() {
               <Coffee className="text-amber-700" size={32} />
               Dashboard de Precificação
             </h1>
-            <p className="text-slate-500 mt-2">Simulação NY x Mercado Físico (Tipo 6 Duro)</p>
+            <p className="text-slate-500 mt-2">Análise de Base: Mercado Físico vs Exportação</p>
           </div>
           
-          {/* Painel de Controles (Inputs) */}
+          {/* Painel de Controles */}
           <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-4 items-center">
-            <Settings2 className="text-slate-400 hidden md:block" size={24} />
+            <Settings2 className="text-slate-400 hidden lg:block" size={24} />
+            
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1">Cotação NY (¢/lb)</label>
-              <input 
-                type="number" 
-                value={cotacaoNY} 
-                onChange={(e) => setCotacaoNY(Number(e.target.value))}
-                className="w-24 px-2 py-1 border border-slate-300 rounded-md font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
+              <label className="block text-xs font-semibold text-slate-500 mb-1">NY (¢/lb)</label>
+              <input type="number" value={cotacaoNY} onChange={(e) => setCotacaoNY(Number(e.target.value))}
+                className="w-20 px-2 py-1 border border-slate-300 rounded-md font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
+            
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Deságio (¢)</label>
+              <input type="number" value={diferencial} onChange={(e) => setDiferencial(Number(e.target.value))}
+                className="w-16 px-2 py-1 border border-amber-300 bg-amber-50 rounded-md font-bold text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+
             <div>
               <label className="block text-xs font-semibold text-slate-500 mb-1">Dólar (R$)</label>
-              <input 
-                type="number" 
-                step="0.01"
-                value={dolar} 
-                onChange={(e) => setDolar(Number(e.target.value))}
-                className="w-24 px-2 py-1 border border-slate-300 rounded-md font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
+              <input type="number" step="0.01" value={dolar} onChange={(e) => setDolar(Number(e.target.value))}
+                className="w-20 px-2 py-1 border border-slate-300 rounded-md font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500" />
             </div>
+            
             <div className="pl-4 border-l border-slate-200">
-              <label className="block text-xs font-semibold text-emerald-600 mb-1">Mercado Físico (R$)</label>
-              <input 
-                type="number" 
-                value={precoFisico} 
-                onChange={(e) => setPrecoFisico(Number(e.target.value))}
-                className="w-28 px-2 py-1 border border-emerald-300 bg-emerald-50 rounded-md font-bold text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
+              <label className="block text-xs font-semibold text-emerald-600 mb-1">Físico (R$)</label>
+              <input type="number" value={precoFisico} onChange={(e) => setPrecoFisico(Number(e.target.value))}
+                className="w-24 px-2 py-1 border border-emerald-300 bg-emerald-50 rounded-md font-bold text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
             </div>
           </div>
         </header>
 
-        {/* Cards de Resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {/* Card NY */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-semibold text-slate-500">Saca NY (Base)</h3>
-              <Package className="text-blue-500" size={20} />
-            </div>
+        {/* Linha 1: Preços Absolutos */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+            <h3 className="text-sm font-semibold text-slate-500 flex items-center gap-2 mb-2"><Package size={16}/> Saca NY (Base Teórica)</h3>
             <p className="text-2xl font-bold text-slate-800">R$ {sacaBaseBRL.toFixed(2)}</p>
-            <p className="text-xs text-slate-400 mt-2">Conversão direta s/ deságio</p>
+          </div>
+          <div className="bg-amber-50 p-5 rounded-xl shadow-sm border border-amber-200">
+            <h3 className="text-sm font-semibold text-amber-800 flex items-center gap-2 mb-2"><Package size={16}/> Saca NY c/ Deságio (-{diferencial}¢)</h3>
+            <p className="text-2xl font-bold text-amber-900">R$ {sacaComDesagioBRL.toFixed(2)}</p>
+          </div>
+          <div className="bg-emerald-50 p-5 rounded-xl shadow-sm border border-emerald-200">
+            <h3 className="text-sm font-semibold text-emerald-800 flex items-center gap-2 mb-2"><MapPin size={16}/> Mercado Físico (Real)</h3>
+            <p className="text-2xl font-bold text-emerald-900">R$ {precoFisico.toFixed(2)}</p>
+          </div>
+        </div>
+
+        {/* Linha 2: Os Comparativos Solicitados */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {/* Comparativo 1: Físico vs Base */}
+          <div className="bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-700 flex justify-between items-center">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-400 flex items-center gap-2 mb-1"><Scale size={16}/> Físico vs NY Base</h3>
+              <p className={`text-2xl font-bold ${diferencaFisicoBase < 0 ? "text-red-400" : "text-green-400"}`}>
+                {diferencaFisicoBase > 0 ? '+' : ''}R$ {diferencaFisicoBase.toFixed(2)} / sc
+              </p>
+            </div>
+            <div className="text-right">
+              <span className={`px-3 py-1 rounded-full text-xs font-bold ${diferencaFisicoBase < 0 ? "bg-red-400/20 text-red-400" : "bg-green-400/20 text-green-400"}`}>
+                {diferencaFisicoBase < 0 ? 'DESÁGIO BRUTO' : 'PRÊMIO BRUTO'}
+              </span>
+            </div>
           </div>
 
-          {/* Card NY com Deságio */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-semibold text-slate-500">Saca NY (-20¢)</h3>
-              <Package className="text-amber-500" size={20} />
+          {/* Comparativo 2: Físico vs Deságio */}
+          <div className="bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-700 flex justify-between items-center">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-400 flex items-center gap-2 mb-1"><Scale size={16}/> Físico vs NY (-{diferencial}¢)</h3>
+              <p className={`text-2xl font-bold ${diferencaFisicoDesagio < 0 ? "text-red-400" : "text-green-400"}`}>
+                {diferencaFisicoDesagio > 0 ? '+' : ''}R$ {diferencaFisicoDesagio.toFixed(2)} / sc
+              </p>
             </div>
-            <p className="text-2xl font-bold text-slate-800">R$ {sacaDesagio20BRL.toFixed(2)}</p>
-            <p className="text-xs text-slate-400 mt-2">Com desconto de exportação</p>
-          </div>
-
-          {/* Card Físico */}
-          <div className="bg-emerald-50 p-6 rounded-xl shadow-sm border border-emerald-100 relative overflow-hidden">
-            <div className="flex justify-between items-center mb-4 relative z-10">
-              <h3 className="text-sm font-semibold text-emerald-800">Físico Guaxupé/MG</h3>
-              <MapPin className="text-emerald-600" size={20} />
+            <div className="text-right">
+              <span className={`px-3 py-1 rounded-full text-xs font-bold ${diferencaFisicoDesagio < 0 ? "bg-red-400/20 text-red-400" : "bg-green-400/20 text-green-400"}`}>
+                {diferencaFisicoDesagio < 0 ? 'FÍSICO DESCONTADO' : 'FÍSICO VALORIZADO'}
+              </span>
             </div>
-            <p className="text-2xl font-bold text-emerald-900 relative z-10">R$ {precoFisico.toFixed(2)}</p>
-            <p className="text-xs text-emerald-700 mt-2 relative z-10">Tipo 6 Duro Bica Corrida</p>
-          </div>
-
-          {/* Card Comparativo */}
-          <div className="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-semibold text-slate-300">Físico vs NY Base</h3>
-              <TrendingDown className={diferencaFisicoBase < 0 ? "text-red-400" : "text-green-400"} size={20} />
-            </div>
-            <p className={`text-2xl font-bold ${diferencaFisicoBase < 0 ? "text-red-400" : "text-green-400"}`}>
-              {diferencaFisicoBase > 0 ? '+' : ''}R$ {diferencaFisicoBase.toFixed(2)}
-            </p>
-            <p className="text-xs text-slate-400 mt-2">
-              {diferencaFisicoBase < 0 ? "Deságio praticado na região" : "Prêmio praticado na região"}
-            </p>
           </div>
         </div>
 
         {/* Área dos Gráficos */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
-          {/* Gráfico 1: Comparativo Físico vs NY */}
+          {/* Gráfico 1: Comparativo Visual */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-            <h3 className="text-lg font-semibold text-slate-800 mb-6">Físico vs Cotação Internacional (R$/Saca)</h3>
+            <h3 className="text-lg font-semibold text-slate-800 mb-6">Comparativo de Preços (R$/sc)</h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dadosComparativos} margin={{ top: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="nome" axisLine={false} tickLine={false} />
                   <YAxis axisLine={false} tickLine={false} domain={['dataMin - 100', 'dataMax + 100']} />
-                  <Tooltip 
-                    formatter={(value) => `R$ ${value}`}
-                    cursor={{fill: '#f1f5f9'}}
-                  />
+                  <Tooltip formatter={(value) => `R$ ${value}`} cursor={{fill: '#f1f5f9'}} />
+                  <ReferenceLine y={precoFisico} stroke="#10b981" strokeDasharray="3 3" />
                   <Bar dataKey="valorR$" radius={[4, 4, 0, 0]}>
-                    {dadosComparativos.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.tipo === 'fisico' ? '#10b981' : '#0ea5e9'} />
-                    ))}
+                    {dadosComparativos.map((entry, index) => {
+                      let color = '#0ea5e9'; // Azul para NY Base
+                      if (entry.tipo === 'desagio') color = '#f59e0b'; // Laranja para NY c/ deságio
+                      if (entry.tipo === 'fisico') color = '#10b981'; // Verde para Físico
+                      return <Cell key={`cell-${index}`} fill={color} />;
+                    })}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -166,7 +167,7 @@ export default function CoffeeDashboard() {
 
           {/* Gráfico 2: Sensibilidade Cambial */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-            <h3 className="text-lg font-semibold text-slate-800 mb-6">Sensibilidade Cambial (Simulação NY)</h3>
+            <h3 className="text-lg font-semibold text-slate-800 mb-6">Sensibilidade Cambial</h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={dadosCambio}>
@@ -176,11 +177,12 @@ export default function CoffeeDashboard() {
                   <Tooltip formatter={(value) => `R$ ${value}`} />
                   <Legend />
                   <Line type="monotone" dataKey="sacaBase" stroke="#0ea5e9" strokeWidth={3} name="NY Base" />
-                  <Line type="monotone" dataKey="sacaDesagio20" stroke="#f59e0b" strokeWidth={3} name="NY (-20¢)" />
+                  <Line type="monotone" dataKey="sacaComDesagio" stroke="#f59e0b" strokeWidth={3} name={`NY (-${diferencial}¢)`} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
+
         </div>
       </div>
     </div>
