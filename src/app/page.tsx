@@ -140,10 +140,17 @@ export default function CoffeeDashboard() {
               <h3 className="text-lg font-semibold text-slate-800 mb-6 text-center">Comparativo de Atratividade (R$/sc)</h3>
               <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={dadosComparativos} margin={{ top: 20, right: 30, left: 60, bottom: 40 }}>
+                  <BarChart data={dadosComparativos} margin={{ top: 20, right: 30, left: 65, bottom: 40 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="nome" axisLine={false} tickLine={false} height={60} tickMargin={10} />
-                    <YAxis axisLine={false} tickLine={false} domain={['dataMin - 100', 'dataMax + 100']} width={60} tick={{fontSize: 12}} tickFormatter={(val) => Math.round(val)} />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      domain={['dataMin - 100', 'dataMax + 100']} 
+                      width={65} 
+                      tick={{fontSize: 12}} 
+                      tickFormatter={(val) => Math.round(val).toString()} 
+                    />
                     <Tooltip formatter={(value) => `R$ ${value}`} cursor={{fill: '#f8fafc'}} />
                     <ReferenceLine y={fisicoVal} stroke="#10b981" strokeDasharray="3 3" />
                     <Bar dataKey="valorR$" radius={[6, 6, 0, 0]} barSize={80}>
