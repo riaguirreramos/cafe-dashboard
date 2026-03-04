@@ -248,7 +248,7 @@ export default function CoffeeDashboard() {
                     <LineChart data={dadosCambio} margin={{ top: 20, right: 40, left: 65, bottom: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis dataKey="dolar" axisLine={false} tickLine={false} height={60} tickMargin={15} tick={{ fontSize: 13 }} />
-                      <YAxis axisLine={false} tickLine={false} domain={['dataMin - 100', 'dataMax + 100']} width={65} tick={{ fontSize: 11 }} tickFormatter={(value) => Math.round(value)} />
+                      <YAxis axisLine={false} tickLine={false} domain={['dataMin - 100', 'dataMax + 100']} width={50} tick={{ fontSize: 11 }} tickFormatter={(value) => Math.round(value)} />
                       <Tooltip formatter={(value) => `R$ ${value}`} />
                       <Legend />
                       <Line type="monotone" dataKey="sacaBase" stroke="#0ea5e9" strokeWidth={3} name="NY (Base Teórica)" />
