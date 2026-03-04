@@ -1,17 +1,34 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
-import { Coffee, Settings2, MapPin, Scale, Landmark } from 'lucide-react';
+import { Coffee, Settings2, MapPin, Scale, Landmark, RefreshCw, Target } from 'lucide-react';
 
 export default function CoffeeDashboard() {
   // Estados para os inputs
   const [cotacaoNY, setCotacaoNY] = useState<number>(286.95);
   const [dolar, setDolar] = useState<number>(5.21);
   const [precoFisico, setPrecoFisico] = useState<number>(1879.00);
-  const [diferencial, setDiferencial] = useState<number>(20); // Diferencial / Basis
+  const [diferencial, setDiferencial] = useState<number>(20); // Diferencial / Basis de exportação simulado
+  const [carregandoDolar, setCarregandoDolar] = useState<boolean>(true);
   
   const librasPorSaca = 132.277;
+
+  // Busca do Dólar Automático (AwesomeAPI)
+  useEffect(() => {
+    fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL')
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.USDBRL && data.USDBRL.ask) {
+          setDolar(parseFloat(parseFloat(data.USDBRL.ask).toFixed(4)));
+        }
+        setCarregandoDolar(false);
+      })
+      .catch(error => {
+        console.error("Erro ao buscar dólar automático:", error);
+        setCarregandoDolar(false);
+      });
+  }, []);
 
   // Cálculos base
   const calcularValorSacaBRL = (nyCents: number, txDolar: number) => {
@@ -21,9 +38,13 @@ export default function CoffeeDashboard() {
   const sacaBaseBRL = parseFloat(calcularValorSacaBRL(cotacaoNY, dolar));
   const paridadeExportacaoBRL = parseFloat(calcularValorSacaBRL(cotacaoNY - diferencial, dolar));
 
-  // Comparativos
+  // Comparativos Financeiros
   const baseBruta = precoFisico - sacaBaseBRL;
   const atratividade = precoFisico - paridadeExportacaoBRL;
+
+  // Descobridor de Basis (Engenharia Reversa)
+  // Fórmula: Basis = ((PreçoFisico * 100) / (Libras * Dolar)) - NY
+  const basisImplicitoCalculado = ((precoFisico * 100) / (librasPorSaca * dolar)) - cotacaoNY;
 
   // Dados para o Gráfico de Barras
   const dadosComparativos = [
@@ -34,11 +55,11 @@ export default function CoffeeDashboard() {
 
   // Dados para Sensibilidade Cambial
   const dadosCambio = [
-    { dolarLabel: 'R$ 4.80', tx: 4.80 },
-    { dolarLabel: 'R$ 5.00', tx: 5.00 },
+    { dolarLabel: `R$ ${(dolar - 0.30).toFixed(2)}`, tx: dolar - 0.30 },
+    { dolarLabel: `R$ ${(dolar - 0.15).toFixed(2)}`, tx: dolar - 0.15 },
     { dolarLabel: `R$ ${dolar} (Atual)`, tx: dolar },
-    { dolarLabel: 'R$ 5.40', tx: 5.40 },
-    { dolarLabel: 'R$ 5.60', tx: 5.60 },
+    { dolarLabel: `R$ ${(dolar + 0.15).toFixed(2)}`, tx: dolar + 0.15 },
+    { dolarLabel: `R$ ${(dolar + 0.30).toFixed(2)}`, tx: dolar + 0.30 },
   ].sort((a, b) => a.tx - b.tx).map(item => ({
     dolar: item.dolarLabel,
     sacaBase: parseFloat(calcularValorSacaBRL(cotacaoNY, item.tx)),
@@ -70,21 +91,28 @@ export default function CoffeeDashboard() {
             </div>
             
             <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1">Diferencial / Basis (¢)</label>
+              <label className="block text-xs font-semibold text-slate-500 mb-1">Basis Alvo (¢)</label>
               <input type="number" value={diferencial} onChange={(e) => setDiferencial(Number(e.target.value))}
                 className="w-20 px-2 py-1 border border-amber-300 bg-amber-50 rounded-md font-bold text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500" />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 mb-1">USDBRL (R$)</label>
-              <input type="number" step="0.01" value={dolar} onChange={(e) => setDolar(Number(e.target.value))}
-                className="w-20 px-2 py-1 border border-slate-300 rounded-md font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500" />
+            <div className="relative">
+              <label className="block text-xs font-semibold text-slate-500 mb-1 flex items-center gap-1">
+                USDBRL (R$)
+                {carregandoDolar ? (
+                  <RefreshCw size={12} className="animate-spin text-blue-500" />
+                ) : (
+                  <span className="text-[10px] bg-green-100 text-green-700 px-1 rounded font-bold">AUTO</span>
+                )}
+              </label>
+              <input type="number" step="0.0001" value={dolar} onChange={(e) => setDolar(Number(e.target.value))}
+                className="w-24 px-2 py-1 border border-slate-300 rounded-md font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500" />
             </div>
             
             <div className="pl-4 border-l border-slate-200">
               <label className="block text-xs font-semibold text-emerald-600 mb-1">Mercado Físico (R$)</label>
               <input type="number" value={precoFisico} onChange={(e) => setPrecoFisico(Number(e.target.value))}
-                className="w-24 px-2 py-1 border border-emerald-300 bg-emerald-50 rounded-md font-bold text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                className="w-28 px-2 py-1 border border-emerald-300 bg-emerald-50 rounded-md font-bold text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
             </div>
           </div>
         </header>
@@ -98,46 +126,60 @@ export default function CoffeeDashboard() {
           <div className="bg-amber-50 p-5 rounded-xl shadow-sm border border-amber-200">
             <h3 className="text-sm font-semibold text-amber-800 flex items-center gap-2 mb-2"><Landmark size={16}/> Paridade de Exportação</h3>
             <p className="text-2xl font-bold text-amber-900">R$ {paridadeExportacaoBRL.toFixed(2)}</p>
-            <p className="text-xs text-amber-700 mt-1">NY descontado o Basis de -{diferencial}¢</p>
+            <p className="text-xs text-amber-700 mt-1">NY descontado o Basis Alvo de -{diferencial}¢</p>
           </div>
           <div className="bg-emerald-50 p-5 rounded-xl shadow-sm border border-emerald-200">
             <h3 className="text-sm font-semibold text-emerald-800 flex items-center gap-2 mb-2"><MapPin size={16}/> Mercado Físico</h3>
             <p className="text-2xl font-bold text-emerald-900">R$ {precoFisico.toFixed(2)}</p>
-            <p className="text-xs text-emerald-700 mt-1">Preço de balcão (Ex: Guaxupé/MG)</p>
+            <p className="text-xs text-emerald-700 mt-1">Preço de balcão reportado</p>
           </div>
         </div>
 
-        {/* Linha 2: Termômetro de Vendas (Os Comparativos) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {/* Comparativo 1: Base Bruta */}
-          <div className="bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-700 flex justify-between items-center">
-            <div>
-              <h3 className="text-sm font-semibold text-slate-400 flex items-center gap-2 mb-1"><Scale size={16}/> Base Bruta (Basis)</h3>
-              <p className={`text-2xl font-bold ${baseBruta < 0 ? "text-red-400" : "text-green-400"}`}>
-                {baseBruta > 0 ? '+' : ''}R$ {baseBruta.toFixed(2)} / sc
-              </p>
-            </div>
-            <div className="text-right">
-              <span className={`px-3 py-1 rounded-full text-xs font-bold ${baseBruta < 0 ? "bg-red-400/20 text-red-400" : "bg-green-400/20 text-green-400"}`}>
-                {baseBruta < 0 ? 'FÍSICO ABAIXO DA TELA' : 'FÍSICO ACIMA DA TELA'}
+        {/* Linha 2: Termômetro de Vendas e Descobridor (Os 3 Comparativos) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          
+          {/* Card 1: Base Bruta */}
+          <div className="bg-slate-800 p-5 rounded-xl shadow-sm border border-slate-700 flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-slate-400 flex items-center gap-2"><Scale size={16}/> Base Bruta (Físico vs NY)</h3>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${baseBruta < 0 ? "bg-red-400/20 text-red-400" : "bg-green-400/20 text-green-400"}`}>
+                {baseBruta < 0 ? 'DESÁGIO' : 'PRÊMIO'}
               </span>
             </div>
+            <p className={`text-2xl font-bold ${baseBruta < 0 ? "text-red-400" : "text-green-400"}`}>
+              {baseBruta > 0 ? '+' : ''}R$ {baseBruta.toFixed(2)} <span className="text-sm font-normal text-slate-500">/sc</span>
+            </p>
           </div>
 
-          {/* Comparativo 2: Atratividade */}
-          <div className="bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-700 flex justify-between items-center ring-1 ring-white/10">
-            <div>
-              <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2 mb-1"><Scale size={16}/> Atratividade: Físico vs Exportação</h3>
-              <p className={`text-2xl font-bold ${atratividade < 0 ? "text-amber-400" : "text-emerald-400"}`}>
-                {atratividade > 0 ? '+' : ''}R$ {atratividade.toFixed(2)} / sc
-              </p>
-            </div>
-            <div className="text-right">
-              <span className={`px-3 py-1 rounded-full text-xs font-bold ${atratividade < 0 ? "bg-amber-400/20 text-amber-400" : "bg-emerald-500/20 text-emerald-400"}`}>
-                {atratividade < 0 ? 'EXPORTAÇÃO PAGA MAIS' : 'FÍSICO PAGA MAIS'}
+          {/* Card 2: Atratividade */}
+          <div className="bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-700 ring-1 ring-white/10 flex flex-col justify-between">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2"><Scale size={16}/> Atratividade vs Exportação</h3>
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${atratividade < 0 ? "bg-amber-400/20 text-amber-400" : "bg-emerald-500/20 text-emerald-400"}`}>
+                {atratividade < 0 ? 'EXPORTAÇÃO GANHA' : 'FÍSICO GANHA'}
               </span>
             </div>
+            <p className={`text-2xl font-bold ${atratividade < 0 ? "text-amber-400" : "text-emerald-400"}`}>
+              {atratividade > 0 ? '+' : ''}R$ {atratividade.toFixed(2)} <span className="text-sm font-normal text-slate-500">/sc</span>
+            </p>
           </div>
+
+          {/* Card 3: DESCOBRIDOR DE BASIS */}
+          <div className="bg-indigo-950 p-5 rounded-xl shadow-sm border border-indigo-800 relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -right-4 -top-4 opacity-10">
+              <Target size={100} />
+            </div>
+            <div className="relative z-10 flex justify-between items-start mb-2">
+              <h3 className="text-sm font-semibold text-indigo-300 flex items-center gap-2"><Target size={16}/> Basis Implícito (Balcão)</h3>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">
+                DESCOBRIDOR
+              </span>
+            </div>
+            <p className={`text-3xl font-bold relative z-10 ${basisImplicitoCalculado < 0 ? "text-red-400" : "text-green-400"}`}>
+              {basisImplicitoCalculado.toFixed(2)} ¢ <span className="text-sm font-normal text-indigo-400/70">/lb</span>
+            </p>
+          </div>
+
         </div>
 
         {/* Área dos Gráficos */}
@@ -153,7 +195,7 @@ export default function CoffeeDashboard() {
                   <XAxis dataKey="nome" axisLine={false} tickLine={false} />
                   <YAxis axisLine={false} tickLine={false} domain={['dataMin - 100', 'dataMax + 100']} />
                   <Tooltip formatter={(value) => `R$ ${value}`} cursor={{fill: '#f1f5f9'}} />
-                  {/* Linha de referência mostrando o valor do físico para fácil visualização */}
+                  {/* Linha de referência do físico */}
                   <ReferenceLine y={precoFisico} stroke="#10b981" strokeDasharray="3 3" />
                   <Bar dataKey="valorR$" radius={[4, 4, 0, 0]}>
                     {dadosComparativos.map((entry, index) => {
@@ -168,9 +210,9 @@ export default function CoffeeDashboard() {
             </div>
           </div>
 
-          {/* Gráfico 2: Sensibilidade Cambial */}
+          {/* Gráfico 2: Sensibilidade Cambial Dinâmica */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-            <h3 className="text-lg font-semibold text-slate-800 mb-6">Sensibilidade Cambial</h3>
+            <h3 className="text-lg font-semibold text-slate-800 mb-6">Sensibilidade Cambial (± R$ 0,30)</h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={dadosCambio}>
