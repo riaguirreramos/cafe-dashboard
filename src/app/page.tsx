@@ -245,7 +245,7 @@ export default function CoffeeDashboard() {
                 <h3 className="text-lg font-semibold text-slate-800 mb-6">Sensibilidade Cambial (± R$ 0,30)</h3>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={dadosCambio} margin={{ top: 20, right: 40, left: 45, bottom: 20 }}>
+                    <LineChart data={dadosCambio} margin={{ top: 20, right: 30, left: 45, bottom: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis dataKey="dolar" axisLine={false} tickLine={false} height={60} tickMargin={15} tick={{ fontSize: 13 }} />
                       <YAxis axisLine={false} tickLine={false} domain={['dataMin - 100', 'dataMax + 100']} width={55} tick={{ fontSize: 11 }} tickFormatter={(value) => Math.round(value)} />
