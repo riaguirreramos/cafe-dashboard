@@ -219,7 +219,7 @@ export default function CoffeeDashboard() {
                 <h3 className="text-lg font-semibold text-slate-800 mb-6">Comparativo de Atratividade (R$/sc)</h3>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={dadosComparativos} margin={{ top: 20 }}>
+                    <BarChart data={dadosComparativos} margin={{ top: 20, bottom: 30 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis dataKey="nome" axisLine={false} tickLine={false} />
                       <YAxis axisLine={false} tickLine={false} domain={['dataMin - 100', 'dataMax + 100']} />
@@ -242,7 +242,7 @@ export default function CoffeeDashboard() {
                 <h3 className="text-lg font-semibold text-slate-800 mb-6">Sensibilidade Cambial (± R$ 0,30)</h3>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={dadosCambio}>
+                    <LineChart data={dadosCambio} margin={{ top: 20, bottom: 30 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis dataKey="dolar" axisLine={false} tickLine={false} />
                       <YAxis axisLine={false} tickLine={false} domain={['dataMin - 100', 'dataMax + 100']} />
