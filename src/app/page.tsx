@@ -5,6 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Coffee, Settings2, MapPin, Scale, Landmark, RefreshCw, Target, AlertCircle } from 'lucide-react';
 
 export default function CoffeeDashboard() {
+  // Estados com inicialização via LocalStorage
   const [cotacaoNY, setCotacaoNY] = useState<number | ''>('');
   const [dolar, setDolar] = useState<number>(0);
   const [precoFisico, setPrecoFisico] = useState<number | ''>('');
@@ -13,6 +14,25 @@ export default function CoffeeDashboard() {
   
   const librasPorSaca = 132.277;
 
+  // 1. Efeito para carregar dados salvos ao abrir a página
+  useEffect(() => {
+    const salvoNY = localStorage.getItem('cafe_ny');
+    const salvoFisico = localStorage.getItem('cafe_fisico');
+    const salvoDiferencial = localStorage.getItem('cafe_diferencial');
+
+    if (salvoNY) setCotacaoNY(Number(salvoNY));
+    if (salvoFisico) setPrecoFisico(Number(salvoFisico));
+    if (salvoDiferencial) setDiferencial(Number(salvoDiferencial));
+  }, []);
+
+  // 2. Efeito para salvar sempre que um valor mudar
+  useEffect(() => {
+    if (cotacaoNY !== '') localStorage.setItem('cafe_ny', cotacaoNY.toString());
+    if (precoFisico !== '') localStorage.setItem('cafe_fisico', precoFisico.toString());
+    localStorage.setItem('cafe_diferencial', diferencial.toString());
+  }, [cotacaoNY, precoFisico, diferencial]);
+
+  // 3. Busca do Dólar Automático (Sempre atualiza)
   useEffect(() => {
     fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL')
       .then(response => response.json())
@@ -99,6 +119,7 @@ export default function CoffeeDashboard() {
 
         {dadosProntos && (
           <div className="space-y-6 animate-in fade-in duration-500">
+            {/* ... Cards de resultado e gráfico permanecem iguais ao código anterior ... */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
                 <h3 className="text-sm font-semibold text-slate-500 flex items-center gap-2 mb-2"><Landmark size={16}/> Saca NY (Base Teórica)</h3>
