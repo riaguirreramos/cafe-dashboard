@@ -28,14 +28,13 @@ export default function CoffeeDashboard() {
     if (salvoNY) setCotacaoNY(Number(salvoNY));
     if (salvoDolar) {
       setDolar(Number(salvoDolar));
-      setCarregandoDolar(false); // Se tem salvo, para o loading
+      setCarregandoDolar(false);
     }
     if (salvoDiferencial) setDiferencialAlvo(Number(salvoDiferencial));
     if (salvoCooxupe) setPrecoCooxupe(Number(salvoCooxupe));
     if (salvoCoopercitrus) setPrecoCoopercitrus(Number(salvoCoopercitrus));
     if (salvoVarginha) setPrecoVarginha(Number(salvoVarginha));
 
-    // Se não tiver dólar salvo, busca o automático uma única vez
     if (!salvoDolar) {
       fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL')
         .then(response => response.json())
@@ -49,7 +48,7 @@ export default function CoffeeDashboard() {
     }
   }, []);
 
-  // 2. Salvar dados automaticamente sempre que mudar
+  // 2. Salvar dados automaticamente
   useEffect(() => {
     if (cotacaoNY !== '') localStorage.setItem('cafe_ny', cotacaoNY.toString());
     if (dolar !== '') localStorage.setItem('cafe_dolar', dolar.toString());
@@ -96,7 +95,7 @@ export default function CoffeeDashboard() {
             <p className="text-slate-500 mt-1 font-medium italic">Cooxupé • Coopercitrus • Varginha vs ICE NY</p>
           </div>
           
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-2 lg:grid-cols-6 gap-3 items-end">
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">ICE NY (¢/lb)</label>
               <input type="number" placeholder="0.00" value={cotacaoNY} onChange={(e) => setCotacaoNY(e.target.value === '' ? '' : Number(e.target.value))}
@@ -113,39 +112,36 @@ export default function CoffeeDashboard() {
                 className="w-full px-2 py-1 border border-slate-300 rounded font-bold focus:ring-2 focus:ring-green-500" />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-emerald-600 uppercase mb-1">Cooxupé (R$)</label>
+              <label className="block text-[10px] font-bold text-emerald-600 uppercase mb-1">Cooxupé</label>
               <input type="number" placeholder="0.00" value={precoCooxupe} onChange={(e) => setPrecoCooxupe(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full px-2 py-1 border border-emerald-300 bg-emerald-50 rounded font-bold text-emerald-800" />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-emerald-600 uppercase mb-1">Varginha (R$)</label>
+              <label className="block text-[10px] font-bold text-emerald-600 uppercase mb-1">Coopercitrus</label>
+              <input type="number" placeholder="0.00" value={precoCoopercitrus} onChange={(e) => setPrecoCoopercitrus(e.target.value === '' ? '' : Number(e.target.value))}
+                className="w-full px-2 py-1 border border-emerald-300 bg-emerald-50 rounded font-bold text-emerald-800" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-emerald-600 uppercase mb-1">Varginha</label>
               <input type="number" placeholder="0.00" value={precoVarginha} onChange={(e) => setPrecoVarginha(e.target.value === '' ? '' : Number(e.target.value))}
                 className="w-full px-2 py-1 border border-emerald-300 bg-emerald-50 rounded font-bold text-emerald-800" />
             </div>
           </div>
         </header>
 
-        {!dadosProntos && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-6 flex flex-col items-center justify-center text-center mb-8 h-80">
-            <AlertCircle size={48} className="text-blue-400 mb-4" />
-            <h2 className="text-xl font-bold mb-2">Aguardando Dados</h2>
-            <p className="max-w-md">Preencha os valores da <strong>Bolsa</strong>, <strong>Dólar</strong> e pelo menos um <strong>Físico</strong> para analisar.</p>
-          </div>
-        )}
-
         {dadosProntos && (
           <div className="space-y-6 animate-in fade-in duration-500">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-indigo-950 p-4 rounded-xl border border-indigo-800">
-                <span className="text-[10px] font-bold text-indigo-300 uppercase">Basis Cooxupé</span>
+                <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Basis Cooxupé</span>
                 <p className="text-2xl font-bold text-white">{calcBasis(precoCooxupe).toFixed(2)} ¢</p>
               </div>
               <div className="bg-indigo-950 p-4 rounded-xl border border-indigo-800">
-                <span className="text-[10px] font-bold text-indigo-300 uppercase">Basis Coopercitrus</span>
+                <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Basis Coopercitrus</span>
                 <p className="text-2xl font-bold text-white">{calcBasis(precoCoopercitrus).toFixed(2)} ¢</p>
               </div>
               <div className="bg-indigo-950 p-4 rounded-xl border border-indigo-800">
-                <span className="text-[10px] font-bold text-indigo-300 uppercase">Basis Varginha</span>
+                <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Basis Varginha</span>
                 <p className="text-2xl font-bold text-white">{calcBasis(precoVarginha).toFixed(2)} ¢</p>
               </div>
             </div>
